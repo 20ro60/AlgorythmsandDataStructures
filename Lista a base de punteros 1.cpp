@@ -26,28 +26,35 @@ public:
         else {
             if (top == &(elem[10])) {
                 cout << "Error, la lista ya esta llena" << endl;
+                cout << "Ultimo elemento: " << (elem[9]) << endl;
                 return 0;
+                
             }
-            *top = a;
-            top++;
-            Imprimir();
-            return 1;
+            else {
+                *top = a;
+                if (top != &(elem[10])) {
+                    top++;
+                }
+                
+                Imprimir();
+                return 1;
+            }
 
         }
     }
 
     int Pop(int& a) {
-        if (top == NULL) {
-            cout << "Error, la lista esta vacia!" << endl;
-            return 0;
-        }
-        else {
+
             int* xp = elem;
-            if (top == xp) {
+            if (top == &elem[10]) {
+                top--;
+            }
+            if (top == xp) { 
                 *top == NULL;
-                xp = NULL;
+                *xp = NULL;
                 Imprimir();
-                return 1;
+                cout << "Esta vacio!" << endl;
+                return 0;
             }
             while ((xp + 1) != top) {
                 cout << "xp: " << *xp << endl;
@@ -58,7 +65,8 @@ public:
             *top = NULL;
             top = xp;
             Imprimir();
-        }
+            cout << "top: " << *top << endl;
+        
     }
 
     void Imprimir() {
@@ -92,6 +100,8 @@ int main()
     Esta_es_la_pila.Push(10);
 
     Esta_es_la_pila.Push(11); // Este debe botar error (si funciona XD)
+    Esta_es_la_pila.Push(12); // Este debe botar error (si funciona XD)
+
 
 
     int* a = NULL;
@@ -104,11 +114,11 @@ int main()
     Esta_es_la_pila.Pop(*a);
     Esta_es_la_pila.Pop(*a);
     Esta_es_la_pila.Pop(*a);
-    Esta_es_la_pila.Pop(*a);
+    Esta_es_la_pila.Pop(*a); // Hasta aqui deberia poder
 
-    Esta_es_la_pila.Pop(*a);
+    Esta_es_la_pila.Pop(*a); //Aqui deberia botar error
 
-    Esta_es_la_pila.Pop(*a);
+    Esta_es_la_pila.Pop(*a); // Este tambien
 
 
 
