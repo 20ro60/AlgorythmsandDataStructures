@@ -1,0 +1,316 @@
+// Elementor.cpp : Este archivo contiene la función "main". La ejecución del programa comienza y termina ahí.
+//
+#include <iostream>
+using namespace std;
+
+class Nodo {
+
+public:
+    int lista[10];
+
+    Nodo* next = nullptr;
+    Nodo* prev = nullptr;
+
+    int numElementos;
+
+
+    //Constructor
+
+    Nodo() {
+        numElementos = 0;
+    }
+
+    // Si esta lleno
+    bool estaLleno() {
+        return numElementos == 10;
+    }
+
+    // Si esta Vacio
+    bool estaVacio() {
+        return numElementos == 0;
+    }
+};
+
+class Elementor {
+
+    Nodo* masIzquierda; // Apuntamos a los nodos para verificarlos
+    Nodo* masDerecha;
+
+public:
+    Elementor() {
+
+        masIzquierda = nullptr;
+        masDerecha = nullptr;
+    }
+
+    void push_back(int valor) {
+        // [] inicio o [lleno] -> [crear nuevo]
+        if (!masDerecha || masDerecha->estaLleno()) {
+            // Crear un nuevo nodo
+            Nodo* nuevoNodo = new Nodo();
+
+            if (masDerecha) {
+                masDerecha->next = nuevoNodo;
+                nuevoNodo->prev = masDerecha;
+            }
+            else {
+                // Si el primer comando es este:
+                masIzquierda = nuevoNodo;
+            }
+            masDerecha = nuevoNodo;
+        }
+        masDerecha->lista[masDerecha->numElementos++] = valor;
+    }
+
+    void push_front(int valor) {
+        // Si es el primero, o esta lleno [] <- [lleno]
+        if (!masIzquierda || masIzquierda->estaLleno()) {
+
+            Nodo* nuevoNodo = new Nodo();
+
+            //Si esta vacio, el ultimo sera [0,0,0,0,0,valor]
+            nuevoNodo->lista[0] = valor;
+            nuevoNodo->numElementos = 1;
+
+            if (masIzquierda) {
+                // Nos movemos a la izquierda
+                nuevoNodo->next = masIzquierda; // apuntamos a la izquierda
+                masIzquierda->prev = nuevoNodo; //Nos movemos ahi XD
+            }
+            else {
+                masDerecha = nuevoNodo;
+            }
+            masIzquierda = nuevoNodo;
+        }
+        else {
+            // Desplaza los elementos existentes hacia la derecha para hacer espacio al nuevo valor.
+            //Avanza de la derecha [0,0,0,0,0,0,0,0, aqui] hacia la izquierda
+            for (int i = masIzquierda->numElementos; i > 0; --i) {
+                masIzquierda->lista[i] = masIzquierda->lista[i - 1];
+            }
+
+            masIzquierda->lista[0] = valor;
+            masIzquierda->numElementos++;
+        }
+    }
+
+
+    void pop_front() {
+        // Caso base, cuando esta vacio
+        if (!masIzquierda) {
+            cout << "Error, no hay lista que modificar" << endl;
+            return;
+        }
+
+        //Marcamos el inicio de la lista como 0 [0,1,2,3,4,5,6,7,8,9,10]
+        masIzquierda->lista[0] = 0;
+
+        // Si estamos en el primer elemento (la lista va a quedar vacia despues del pop)
+        if (masIzquierda->numElementos == 1) {
+            // Nos preparamos para borrar este nodo
+            Nodo* temp = masIzquierda;
+            masIzquierda = masIzquierda->next;
+            // null -> []
+            if (masIzquierda) {
+                masIzquierda->prev = nullptr; //Avanzamos al que le sigue
+            }
+            else {
+                // Actualizar mas derecha
+                masDerecha = nullptr;
+            }
+            delete temp;
+        }
+        else {
+            // mas elementos?
+            masIzquierda->numElementos--;
+        }
+    }
+
+    void pop_back() {
+        // Caso base, cuando esta vacio
+        if (!masDerecha) {
+            cout << "Error, no hay lista que modificar" << endl;
+            return;
+        }
+        //Si es que no esta vacio
+        masDerecha->numElementos--;
+        // Eliminarlo (bueno, todavia no XD)
+        if (masDerecha->estaVacio()) {
+            Nodo* temp = masDerecha;
+            masDerecha = masDerecha->prev; //Avanzamos al anterior
+
+            // Se elimina el nodo y del anterior [nodo]->null
+            if (masDerecha) {
+                masDerecha->next = nullptr;
+            }
+            else {
+                //actualizar masIzquierda
+                masIzquierda = nullptr;
+            }
+            // AHora si XD
+            delete temp;
+        }
+    }
+
+    void deletor(int a) {
+        int temp = masDerecha->numElementos;
+        int* pos = find(a);
+        pop_back();
+
+    }
+
+    ~Elementor() {
+        while (masIzquierda) {
+            Nodo* temp = masIzquierda;
+            masIzquierda = masIzquierda->next;
+            delete temp;
+        }
+    }
+
+    void imprimir() {
+        Nodo* actual = masIzquierda; // El que esta mas a la izquierda
+        while (actual) {
+            cout << "[";
+            for (int i = 0; i < actual->numElementos; ++i) {
+                cout << actual->lista[i] << ", ";
+            }
+            cout << "] -> ";
+            actual = actual->next;
+        }
+        
+    }
+    int* find(int a) {
+        Nodo* actual = masIzquierda; // El que esta mas a la izquierda
+        int* pos = nullptr;
+
+        while (actual) { // Mientras existe
+            for (int i = 0; i < actual->numElementos; ++i) { //Verificar en num de elemntos
+
+                if (actual->lista[i] == a) {
+                    pos = &(actual->lista[i]);
+                    cout << "Encontrado en " << pos << " Nodo: " << actual << endl;
+                    return pos;
+                }
+            }
+            actual = actual->next;
+        }
+        cout << "No esta" << endl;
+        return pos;
+
+        /*while ((actual->lista[i]) != a) {
+            //cout << "Actual: " << actual->lista[i] << endl;
+            //cout << "a     : " << a << endl;
+            if (actual->lista[i] == a) {
+                cout << "Encontrado " << endl;
+                pos = &(actual->lista[i]);
+                cout << "Encontrado en: " << &pos << endl;
+                return pos;
+            }
+            else {
+                i++;
+            }
+            
+        }
+        cout << "No encontrado" << endl;*/
+        /*while (actual) {
+
+            for (int i = 0; actual->lista[i] != a; ++i) {
+                cout << actual->lista[i] << ", ";
+                cout << "lista: " << actual->lista[i] << endl;
+                if (actual->lista[i] == a) {
+                    cout << "Encontrado" << endl;
+                    return pos;
+                }
+            }
+
+            actual = actual->next;
+        }
+        
+        cout << "No esta" << endl;
+        return pos;*/
+        
+        
+            
+        
+        
+    }
+};
+
+int main() {
+    Elementor Elemento;
+
+    // Prueba
+    cout << "añadir: " << endl;
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.push_back(i);
+    }
+    Elemento.imprimir();
+
+    cout << "Pop back: " << endl;
+    for (int i = 1; i <= 15; ++i) {
+        Elemento.pop_back();
+        //Elemento.imprimir();
+    }
+    Elemento.imprimir();
+    cout << endl;
+
+    for (int i = 1; i <= 7; ++i) {
+        Elemento.pop_back(); // El 7mo deberia botar error
+        Elemento.imprimir(); 
+    }
+    Elemento.imprimir();
+
+    cout << "añadir: " << endl;
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.push_back(i);
+    }
+    Elemento.imprimir();
+
+    cout << endl;
+    cout << "deletor" << endl;
+    Elemento.deletor(1);
+    Elemento.imprimir();
+
+
+    /*cout << endl << "Push front: " << endl;
+    // Deberia hacerlo alreves
+    for (int i = 1; i <= 11; ++i) {
+        Elemento.push_front(i); //Si funciona
+        //Elemento.imprimir();
+    }
+    Elemento.imprimir();
+    cout << endl;
+    for (int i = 1; i <= 12; ++i) {
+        Elemento.push_front(i); //Si funciona
+        //Elemento.imprimir();
+    }
+    Elemento.imprimir();
+    cout << endl;
+
+
+
+    cout << endl << "Pop front: " << endl;
+    for (int i = 1; i <= 10; ++i) {
+        Elemento.pop_front(); //Si funciona
+        //Elemento.imprimir();
+    }
+    Elemento.imprimir();*/
+
+
+    int* pos;
+    
+    cout << endl;
+    cout << endl;
+    cout << "Find " << endl;
+
+    
+    cout << endl;
+    cout << "No esta: " << endl;
+    Elemento.imprimir();
+    pos = Elemento.find(23); // No esta
+    cout << endl;
+
+    cout << "Si esta: " << endl;
+    Elemento.imprimir();
+    pos = Elemento.find(9); // Si esta
+    cout << endl;
