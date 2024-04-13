@@ -4,92 +4,282 @@
 #include <iostream>
 using namespace std;
 
-class Elementor {
-    int datos[10];
-    int* Cabeza = NULL;
-    int* Fin = NULL;
-   
+class Nodo {
 
 public:
-    void Imprimir() {
-        if (Fin == NULL) {
-            cout << " ]" << endl;
-            return;
-        }
-        Cabeza = datos;
-        cout << "[ ";
-        int* corredor = Cabeza;
-        while (corredor != Fin) {
-            cout << *corredor << ", ";
-            corredor++;
-        }
-        cout << " ]" << endl;
+    int lista[10];
+
+    Nodo* next = nullptr;
+    Nodo* prev = nullptr;
+
+    int numElementos;
+    
+
+    //Constructor
+
+    Nodo(){
+        numElementos = 0;
     }
 
-    void add(int a) {
-        if (Cabeza == NULL) {
-            Cabeza = datos;
-            Fin = datos;
-            *Fin = a;
-            Fin++;
-            Imprimir();
-        }
-        else if (Fin == &(datos[10])) {
-           cout << "Aqui deberia crear una nueva lista" << endl;
-           
-        }
-        else {
-            //cout << "Aqui deberia agregar mas datos" << endl;
-            *Fin = a;
-            Fin++;
-            Imprimir();
-        }
+    // Si esta lleno
+    bool estaLleno() {
+        return numElementos == 10;
     }
 
-    void delet(int a) {
-
-    }
-
-    int* find(int a) {
-        int* posicion = NULL;
-        if (*Cabeza <= a && a <= *Fin) {
-            cout << "Esta en el rango" << endl;
-            for (posicion = datos; posicion++; posicion) {
-                if (*posicion == a) {
-                    cout << "Contenido de posicion: " << *posicion << endl;
-                    return posicion;
-                }
-            }
-        }
-        else if (a > *Fin && *Fin != NULL) {
-            cout << "Esta en el siguiente" << endl;
-        }
-        else {
-            cout << "No esta en el rango" << endl;
-        }
+    // Si esta Vacio
+    bool estaVacio() {
+        return numElementos == 0;
     }
 };
 
+class Elementor {
 
-int main()
-{
-    std::cout << "Hello World!\n";
-    Elementor a;
-    a.Imprimir();
-    a.add(1);
-    a.add(2);
-    a.add(3);
-    a.add(4);
-    a.add(5);
-    a.add(6);
-    a.add(7);
-    a.add(8);
-    a.add(9);
-    a.add(10); // Hasta aqui la primera lista
+    Nodo* masIzquierda; // Apuntamos a los nodos para verificarlos
+    Nodo* masDerecha;
 
-    a.add(11);
-    a.add(12);
+public:
+    Elementor(){
+
+        masIzquierda = nullptr;
+        masDerecha = nullptr;
+    }
+
+    void push_back(int valor) {
+        // [] inicio o [lleno] -> [crear nuevo]
+        if (!masDerecha || masDerecha->estaLleno()) {
+            // Crear un nuevo nodo
+            Nodo* nuevoNodo = new Nodo();
+
+            if (masDerecha) {
+                masDerecha->next = nuevoNodo;
+                nuevoNodo->prev = masDerecha;
+            }
+            else {
+                // Si el primer comando es este:
+                masIzquierda = nuevoNodo;
+            }
+            masDerecha = nuevoNodo;
+        }
+        masDerecha->lista[masDerecha->numElementos++] = valor;
+    }
+
+    void push_front(int valor) {
+        // Si es el primero, o esta lleno [] <- [lleno]
+        if (!masIzquierda || masIzquierda->estaLleno()) {
+
+            Nodo* nuevoNodo = new Nodo();
+
+            //Si esta vacio, el ultimo sera [0,0,0,0,0,valor]
+            nuevoNodo->lista[0] = valor;
+            nuevoNodo->numElementos = 1;
+
+            if (masIzquierda) {
+                // Nos movemos a la izquierda
+                nuevoNodo->next = masIzquierda; // apuntamos a la izquierda
+                masIzquierda->prev = nuevoNodo; //Nos movemos ahi XD
+            }
+            else {
+                masDerecha = nuevoNodo;
+            }
+            masIzquierda = nuevoNodo;
+        }
+        else {
+            // Desplaza los elementos existentes hacia la derecha para hacer espacio al nuevo valor.
+            //Avanza de la derecha [0,0,0,0,0,0,0,0, aqui] hacia la izquierda
+            for (int i = masIzquierda->numElementos; i > 0; --i) {
+                masIzquierda->lista[i] = masIzquierda->lista[i - 1];
+            }
+            
+            masIzquierda->lista[0] = valor;
+            masIzquierda->numElementos++;
+        }
+    }
+
+    void pop_front() {
+        // Caso base, cuando esta vacio
+        if (!masIzquierda) {
+            cout << "Error, no hay lista que modificar" << endl;
+            return;
+        }
+
+        //Marcamos el inicio de la lista como 0 [0,1,2,3,4,5,6,7,8,9,10]
+        masIzquierda->lista[0] = 0;
+
+        // Si estamos en el primer elemento (la lista va a quedar vacia despues del pop)
+        if (masIzquierda->numElementos == 1) {
+            // Nos preparamos para borrar este nodo
+            Nodo* temp = masIzquierda;
+            masIzquierda = masIzquierda->next;
+            // null -> []
+            if (masIzquierda) {
+                masIzquierda->prev = nullptr; //Avanzamos al que le sigue
+            }
+            else {
+                // Actualizar mas derecha
+                masDerecha = nullptr;
+            }
+            delete temp;
+        }
+        else {
+            // mas elementos?
+            masIzquierda->numElementos--;
+        }
+    }
+
+    void pop_back() {
+        // Caso base, cuando esta vacio
+        if (!masDerecha) {
+            cout << "Error, no hay lista que modificar" << endl;
+            return;
+        }
+        //Si es que no esta vacio
+        masDerecha->numElementos--;
+        // Eliminarlo (bueno, todavia no XD)
+        if (masDerecha->estaVacio()) {
+            Nodo* temp = masDerecha;
+            masDerecha = masDerecha->prev; //Avanzamos al anterior
+
+            // Se elimina el nodo y del anterior [nodo]->null
+            if (masDerecha) {
+                masDerecha->next = nullptr;
+            }
+            else {
+                //actualizar masIzquierda
+                masIzquierda = nullptr;
+            }
+            // AHora si XD
+            delete temp;
+        }
+    }
+
+    ~Elementor() {
+        while (masIzquierda) {
+            Nodo* temp = masIzquierda;
+            masIzquierda = masIzquierda->next;
+            delete temp;
+        }
+    }
+
+    void imprimir() {
+        Nodo* actual = masIzquierda; // El que esta mas a la izquierda
+        while (actual) {
+            cout << "[";
+            for (int i = 0; i < actual->numElementos; ++i) {
+                cout << actual->lista[i] <<  ", ";
+            }
+            cout << "] -> ";
+            actual = actual->next;
+        }
+        cout << "null" << endl;
+    }
+};
+
+int main() {
+    Elementor Elemento;
+
+    // Prueba
+    cout << "Push back: " << endl;
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.push_back(i);
+    }
+    Elemento.imprimir();
+
+    cout << "Pop back: " << endl;
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.pop_back();
+        Elemento.imprimir();
+    }
+    Elemento.imprimir();
+    
+    cout << endl << "Push front: " << endl;
+    // Deberia hacerlo alreves
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.push_front(i); //Si funciona
+        Elemento.imprimir();
+    }
+    
+    cout << endl << "Pop front: " << endl;
+    for (int i = 1; i <= 21; ++i) {
+        Elemento.pop_front(); //Si funciona
+        Elemento.imprimir();
+    }
+
+    Elemento.imprimir();
+
+    return 0;
 }
+
+
+
+
+/*
+	// [1,1,,22,2,3,2] -> [ creacion del de aqui] //pushes
+	nodo(nodo* anterior, int numercillo, int tipito) : prev(anterior) ,nuevonumero(numercillo){
+		next = nullptr; 
+		prev = anterior; //Apuntar al anterior
+		
+	}
+	// [Creacion del de aqui] <- [1,1,1,2,23,,23,2,]  //pops
+	nodo(nodo* posterior, int tipo) : next(posterior) {
+		next = posterior; //Apuntar al posterior
+		prev = nullptr;
+		nodo::push_front(numercillo);
+	}
+
+public:
+
+	void push_back(int numero) {
+		// Caso base
+		if (head == nullptr) {
+			head = lista; // Apuntamos a la lista
+			*head = numero; //Cambiamos el primero por el numero dado
+		}
+		else {
+			if (head != &(lista[10])) {
+				head++;
+				*head = numero;
+			}
+			else if (head == &lista[10]) {
+				cout << "Lista llena, creando nueva..." << endl;
+				nodo* nodonuevo = new nodo(this,numero,2);
+			}
+			
+		}
+	};
+
+	void push_front(int numero) {
+		// Caso base
+		if (head == nullptr ) {
+			//Inicializamos con el ultimo
+			head = &(lista[9]);
+			*head = numero;
+		}
+		else {
+			if (head != &(lista[0])) {
+				head--;
+				*head = numero;
+			}
+			else if (head == &lista[0]) {
+				cout << "Lista llena, creando nueva..." << endl;
+				nodo* nodonuevo = new nodo(this, numero, 1);
+			}
+
+		}
+	};
+	void eliminar(int numero) {
+		if (head) {
+
+		}
+		else {
+			
+		}
+	}
+	
+};
+
+int main() {
+
+}*/
 
 // Ejecutar programa: Ctrl + F5 o menú Depurar > Iniciar sin depurar
 // Depurar programa: F5 o menú Depurar > Iniciar depuración
